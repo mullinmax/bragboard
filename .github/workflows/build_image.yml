@@ -1,0 +1,50 @@
+name: Build and Tag Docker Image
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+  release:
+    types: [published]
+
+env:
+  VERSION_FILE: version.txt
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Read the version from the version file
+      - name: Read version
+        id: read_version
+        run: echo "VERSION=$(cat $VERSION_FILE)" >> $GITHUB_ENV
+
+      # Set up Docker Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      # Log in to GitHub Container Registry
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Build and push the Docker image
+      - name: Build and push Docker image
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            TAG="dev-${{ github.event.pull_request.number }}"
+          elif [[ "${{ github.event_name }}" == "release" ]]; then
+            TAG="latest"
+          fi
+          docker buildx build \
+            --push \
+            --tag ghcr.io/${{ github.repository }}:$TAG \
+            --tag ghcr.io/${{ github.repository }}:${{ env.VERSION }} \
+            .
