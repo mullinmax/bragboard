@@ -9,6 +9,10 @@ on:
 env:
   VERSION_FILE: version.txt
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -21,7 +25,12 @@ jobs:
       # Read the version from the version file
       - name: Read version
         id: read_version
-        run: echo "VERSION=$(cat $VERSION_FILE)" >> $GITHUB_ENV
+        run: |
+          if [ -f "$VERSION_FILE" ] && [ -s "$VERSION_FILE" ]; then
+            echo "VERSION=$(cat $VERSION_FILE)" >> $GITHUB_ENV
+          else
+            echo "VERSION=latest" >> $GITHUB_ENV
+          fi
 
       # Set up Docker Buildx
       - name: Set up Docker Buildx
