@@ -9,6 +9,10 @@ on:
 env:
   VERSION_FILE: version.txt
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -39,7 +43,6 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-          permissions: write
 
       # Build and push the Docker image
       - name: Build and push Docker image
