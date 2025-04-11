@@ -23,7 +23,7 @@ repos:
       - id: mypy
 
   - repo: https://github.com/pycqa/isort
-    rev: 5.11.2
+    rev: 6.0.1
     hooks:
       - id: isort
         name: isort (python)
