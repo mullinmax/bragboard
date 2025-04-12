@@ -30,9 +30,11 @@ jobs:
                 run: |
                   cd frontend
                   npm run build
+                  mkdir -p backend/build
+                  mv build/* backend/build/
 
               - name: Upload build artifacts
                 uses: actions/upload-artifact@v3
                 with:
                   name: frontend-build
-                  path: frontend/build
+                  path: frontend/backend/build
