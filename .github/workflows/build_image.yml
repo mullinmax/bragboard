@@ -32,6 +32,19 @@ jobs:
             echo "VERSION=latest" >> $GITHUB_ENV
           fi
 
+      # Build the frontend
+      - name: Build Frontend
+        run: |
+          cd frontend
+          npm install
+          npm run build
+
+      # Include frontend build artifacts in Docker build context
+      - name: Prepare Docker build context
+        run: |
+          mkdir -p backend/frontend/build
+          cp -r frontend/build backend/frontend/build
+
       # Set up Docker Buildx
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
