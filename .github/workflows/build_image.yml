@@ -7,7 +7,7 @@ on:
     types: [published]
 
 env:
-  VERSION_FILE: version.txt
+  VERSION_FILE: backend/version.txt
 
 permissions:
   contents: read
@@ -56,4 +56,4 @@ jobs:
             --push \
             --tag ghcr.io/${{ github.repository }}:$TAG \
             --tag ghcr.io/${{ github.repository }}:${{ env.VERSION }} \
-            .
+            ./backend
