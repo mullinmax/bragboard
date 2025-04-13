@@ -1,16 +1,27 @@
-import os
-
 from fastapi import FastAPI
+from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 app = FastAPI()
 
-static_files = os.listdir("static")
-for file in static_files:
+# Mount the static files directory
+app.mount("/html", StaticFiles(directory="web/html", html=True), name="static")
+app.mount("/css", StaticFiles(directory="web/css", html=True), name="static")
+app.mount("/js", StaticFiles(directory="web/js", html=True), name="static")
+app.mount("/img", StaticFiles(directory="web/img", html=True), name="static")
 
-    @app.get(f"/{file}")
-    async def serve_file(file_name: str = file):
-        return StaticFiles(directory="static")(file_name)
+
+@app.get("/")
+async def redirect_to_index():
+    return RedirectResponse(url="/html/index.html")
+
+
+@app.exception_handler(404)
+async def not_found_handler(request, exc):
+    return JSONResponse(
+        status_code=404,
+        content={"message": "Resource not found"},
+    )
 
 
 @app.get("/api/random_data")
