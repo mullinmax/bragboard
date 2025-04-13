@@ -7,49 +7,15 @@ on:
     types: [published]
 
 env:
-  VERSION_FILE: backend/version.txt
+  VERSION_FILE: version.txt
 
 permissions:
   contents: read
   packages: write
 
 jobs:
-  build-frontend:
-    runs-on: ubuntu-latest
-
-    steps:
-      # Checkout the repository
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      # Set up Docker Buildx
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
-      # Log in to GitHub Container Registry
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v2
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      # Build and push the frontend Docker image
-      - name: Build and push Frontend Docker image
-        run: |
-          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            TAG="frontend-dev-${{ github.event.pull_request.number }}"
-          elif [[ "${{ github.event_name }}" == "release" ]]; then
-            TAG="frontend-latest"
-          fi
-          docker buildx build \
-            --push \
-            --tag ghcr.io/${{ github.repository }}:$TAG-frontend \
-            ./frontend
-
   build-backend:
     runs-on: ubuntu-latest
-    needs: build-frontend
 
     steps:
       # Checkout the repository
@@ -90,4 +56,4 @@ jobs:
             --push \
             --tag ghcr.io/${{ github.repository }}:$TAG-backend \
             --tag ghcr.io/${{ github.repository }}:${{ env.VERSION }}-backend \
-            ./backend
+            .
