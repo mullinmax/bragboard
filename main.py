@@ -1,6 +1,49 @@
+import sqlite3
+
+import databases
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
+
+# Define database URL
+DATABASE_URL = "sqlite:///./bragboard.db"
+database = databases.Database(DATABASE_URL)
+
+
+# Create tables if they don't exist
+def init_db():
+    # Extract the file path from the URL
+    db_path = DATABASE_URL.replace("sqlite:///", "")
+
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+
+    # Create your tables here
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS items (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            description TEXT
+        )
+    """
+    )
+
+    conn.commit()
+    conn.close()
+
+
+# Register database lifecycle events
+def register_db_events(app):
+    @app.on_event("startup")
+    async def startup():
+        init_db()
+        await database.connect()
+
+    @app.on_event("shutdown")
+    async def shutdown():
+        await database.disconnect()
+
 
 app = FastAPI()
 
