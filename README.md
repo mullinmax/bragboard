@@ -58,3 +58,16 @@ erDiagram
 - **Play**: An individual player's turn within a game (1-4 players per game)
 - **User**: A registered user who can be linked to plays
 - **Time Series Data**: Detailed metrics tracking score over time, ball in play, and tilt warnings
+
+
+### Bragboard dev TODO list
+
+- [ ] finish trench coat based dev pipeline
+- [ ] make vector report IP address
+- [ ] make vector self-assign a guid
+- [ ] grab high scores from each vector baord
+- [ ] make vector broadcast live game data
+- [ ] write web UI to display high scores
+    - [ ] scroll through high scores within one game
+    - [ ] "slide show" of games 
+- [ ] pull in backglass images
