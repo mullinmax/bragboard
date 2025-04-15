@@ -8,6 +8,11 @@ def listen_for_boards() -> None:
     import json
     import socket
     import time
+    import logging
+
+    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger(__name__)
+    logger.info("Listening for board announcements...")
 
     # The UDP port used for discovery
     DISCOVERY_PORT = 37020
@@ -73,11 +78,9 @@ def listen_for_boards() -> None:
 
     # Print current known devices
     if known_devices:
-        print(f"Current visible boards: {len(known_devices)}")
+        logging.info(f"Current known devices:{len(known_devices)}")
         for ip, info in known_devices.items():
-            print(
-                f"  - {info['name']} at {ip} (version: {info['version']}, last seen: {int(current_time - info['last_seen'])}s ago)"  # noqa: E501
-            )
+            logging.info(f"  {info['name']} at {ip} (version: {info['version']})")
 
 
 # Global variables to maintain state between function calls

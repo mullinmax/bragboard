@@ -1,9 +1,12 @@
 import sqlite3
-
+import logging
 import databases
+import uvicorn
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
+
+from jobs.scheduler import app_lifespan
 
 # Define database URL
 DATABASE_URL = "sqlite:///./bragboard.db"
@@ -45,7 +48,7 @@ def register_db_events(app):
         await database.disconnect()
 
 
-app = FastAPI()
+app = FastAPI(lifespan=app_lifespan)
 
 # Mount the static files directory
 app.mount("/html", StaticFiles(directory="web/html", html=True), name="static")
@@ -72,6 +75,14 @@ async def get_random_data():
     # Simulate some random data
     data = {"name": "John Doe", "age": 30, "city": "New York"}
     return data
+
+
+if __name__ == "__main__":
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    )
+    uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")
 
 
 # routes

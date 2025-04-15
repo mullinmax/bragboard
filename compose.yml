@@ -11,6 +11,7 @@ services:
       - DATABASE_NAME=bragboard
       - DATABASE_USER=bragboard_user
       - DATABASE_PASSWORD=securepassword
+  
   postgres:
     image: postgres:latest
     environment:
