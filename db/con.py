@@ -153,6 +153,23 @@ class BaseModelDB:
         query = f'DELETE FROM "{cls.table_name}" WHERE {conditions}'
         await (await cls.get_db()).execute(query, tuple(kwargs.values()))
 
+    @classmethod
+    async def upsert(cls, **kwargs):
+        await cls.initialize()
+
+        # Safety check for column names
+        cls.validate_column_names(kwargs.keys())
+
+        columns = ", ".join(f'"{key}"' for key in kwargs)
+        param_indices = ", ".join([f"${i+1}" for i in range(len(kwargs))])
+        update_clause = ", ".join([f'"{key}" = EXCLUDED."{key}"' for key in kwargs])
+
+        query = f"""
+            INSERT INTO "{cls.table_name}" ({columns}) VALUES ({param_indices})
+            ON CONFLICT (id) DO UPDATE SET {update_clause}
+        """
+        await (await cls.get_db()).execute(query, tuple(kwargs.values()))
+
 
 # Example usage - no need to specify connection params anymore
 class User(BaseModelDB):
@@ -171,7 +188,9 @@ class Machine(BaseModelDB):
     schema_definition = """
     CREATE TABLE IF NOT EXISTS "machines" (
         id SERIAL PRIMARY KEY,
+        ip TEXT NOT NULL,
         name TEXT NOT NULL,
+        version TEXT NOT NULL,
         last_seen TIMESTAMP NOT NULL
     )
     """

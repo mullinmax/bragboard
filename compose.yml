@@ -4,14 +4,21 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8000:8000"
-      - "37020:37020/udp"
+      - "8000"       # Web UI / API
+      - "37020:37020/udp" # Discovery
     environment:
       - DATABASE_HOST=postgres
       - DATABASE_PORT=5432
       - DATABASE_NAME=bragboard
       - DATABASE_USER=bragboard_user
       - DATABASE_PASSWORD=securepassword
+    labels:
+      - "traefik.http.routers.bragboard.rule=Host(`bragboard.doze.dev`)"
+      - "traefik.http.routers.bragboard.service=bragboard"
+      - "traefik.http.services.bragboard.loadbalancer.server.port=8000"
+    networks:
+      - internal             # talks to Postgres
+      - traefik_default      # visible to the proxy
 
   postgres:
     image: postgres:latest
@@ -20,9 +27,17 @@ services:
       - POSTGRES_USER=bragboard_user
       - POSTGRES_PASSWORD=securepassword
     ports:
-      - "5432:5432"
+      - "5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - internal             # **not** on traefik_default
 
 volumes:
   postgres_data:
+
+networks:
+  traefik_default:           # the proxy’s network
+    external: true
+    name: traefik_default
+  internal:                  # created by Compose, isolated

@@ -1,53 +1,11 @@
 import logging
-import sqlite3
-
-import databases
 import uvicorn
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
+from db.con import Machine
 from jobs.scheduler import app_lifespan
-
-# Define database URL
-DATABASE_URL = "sqlite:///./bragboard.db"
-database = databases.Database(DATABASE_URL)
-
-
-# Create tables if they don't exist
-def init_db():
-    # Extract the file path from the URL
-    db_path = DATABASE_URL.replace("sqlite:///", "")
-
-    conn = sqlite3.connect(db_path)
-    cursor = conn.cursor()
-
-    # Create your tables here
-    cursor.execute(
-        """
-        CREATE TABLE IF NOT EXISTS items (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            description TEXT
-        )
-    """
-    )
-
-    conn.commit()
-    conn.close()
-
-
-# Register database lifecycle events
-def register_db_events(app):
-    @app.on_event("startup")
-    async def startup():
-        init_db()
-        await database.connect()
-
-    @app.on_event("shutdown")
-    async def shutdown():
-        await database.disconnect()
-
 
 app = FastAPI(lifespan=app_lifespan)
 
@@ -71,11 +29,18 @@ async def not_found_handler(request, exc):
     )
 
 
-@app.get("/api/random_data")
-async def get_random_data():
-    # Simulate some random data
-    data = {"name": "John Doe", "age": 30, "city": "New York"}
-    return data
+@app.get("/api/machines/list")
+async def machiens_list():
+    """
+    Get the list of machines.
+    """
+    machines = await Machine.all()
+
+    # serialize the datetime in last_seen
+    for machine in machines:
+        machine["last_seen"] = machine["last_seen"].isoformat() if machine["last_seen"] else None
+
+    return JSONResponse(content={"machines": machines})
 
 
 if __name__ == "__main__":

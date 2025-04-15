@@ -1,14 +1,19 @@
-def listen_for_boards() -> None:
+import json
+import logging
+import socket
+import time
+from datetime import datetime
+
+from db.con import Machine
+
+async def listen_for_boards() -> None:
     """
     Listen for UDP broadcasts from boards on the network.
     This function is designed to be called regularly from a FastAPI scheduler.
     """
     global known_devices, recv_sock
 
-    import json
-    import logging
-    import socket
-    import time
+    
 
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger(__name__)
@@ -81,6 +86,15 @@ def listen_for_boards() -> None:
         logging.info(f"Current known devices:{len(known_devices)}")
         for ip, info in known_devices.items():
             logging.info(f"  {info['name']} at {ip} (version: {info['version']})")
+
+    # Update the database with the known devices
+    for ip, info in known_devices.items():
+        await Machine.upsert(
+            ip=ip,
+            name=info["name"],
+            version=info["version"],
+            last_seen=datetime.fromtimestamp(info["last_seen"])
+        )
 
 
 # Global variables to maintain state between function calls
