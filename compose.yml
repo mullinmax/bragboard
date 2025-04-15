@@ -1,4 +1,15 @@
 services:
+  postgres:
+    container_name: bragboard-postgres
+    image: postgres:latest
+    environment:
+      - POSTGRES_DB=bragboard
+      - POSTGRES_USER=bragboard_user
+      - POSTGRES_PASSWORD=securepassword
+    ports:
+      - "5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
   api:
     container_name: bragboard-api
     build:
@@ -19,19 +30,8 @@ services:
       - "traefik.http.services.bragboard.loadbalancer.server.port=8000"
     extra_hosts:
       - "host.docker.internal:host-gateway" # allows access to LAN
-
-  postgres:
-    container_name: bragboard-postgres
-    image: postgres:latest
-    environment:
-      - POSTGRES_DB=bragboard
-      - POSTGRES_USER=bragboard_user
-      - POSTGRES_PASSWORD=securepassword
-    ports:
-      - "5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-
+    depends_on:
+      - postgres
 
 volumes:
   postgres_data:

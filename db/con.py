@@ -187,8 +187,7 @@ class Machine(BaseModelDB):
     table_name = "machines"
     schema_definition = """
     CREATE TABLE IF NOT EXISTS "machines" (
-        id SERIAL PRIMARY KEY,
-        ip TEXT NOT NULL,
+        ip TEXT PRIMARY KEY,
         name TEXT NOT NULL,
         version TEXT NOT NULL,
         last_seen TIMESTAMP NOT NULL
