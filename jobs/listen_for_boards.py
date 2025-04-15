@@ -5,12 +5,16 @@ from datetime import datetime
 
 from db.con import Machine
 
+# Global socket variable that persists between function calls
+recv_sock = None
+
 
 async def listen_for_boards() -> None:
     """
     Listen for UDP broadcasts from boards on the network.
     This function is designed to be called regularly from a FastAPI scheduler.
     """
+    global recv_sock
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger(__name__)
     logger.info("Listening for board announcements...")
@@ -18,16 +22,19 @@ async def listen_for_boards() -> None:
     # The UDP port used for discovery
     DISCOVERY_PORT = 37020
 
-    # Create socket for each function call
-    try:
-        recv_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        recv_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        recv_sock.bind(("0.0.0.0", DISCOVERY_PORT))
-        recv_sock.setblocking(False)
-        logger.info(f"Listening for board announcements on UDP port {DISCOVERY_PORT}")
-    except Exception as e:
-        logger.error(f"Failed to set up socket: {e}")
-        return
+    # Create socket only if it doesn't exist
+    if recv_sock is None:
+        try:
+            recv_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            recv_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            recv_sock.bind(("0.0.0.0", DISCOVERY_PORT))
+            recv_sock.setblocking(False)
+            logger.info(f"Created socket listening on UDP port {DISCOVERY_PORT}")
+        except Exception as e:
+            logger.error(f"Failed to set up socket: {e}")
+            return
+    else:
+        logger.debug("Using existing socket for board announcements")
 
     # Process incoming announcements
     try:
@@ -59,7 +66,3 @@ async def listen_for_boards() -> None:
 
     except Exception as e:
         logger.error(f"Error while listening for boards: {e}")
-
-    finally:
-        # Clean up
-        recv_sock.close()
