@@ -6,9 +6,9 @@ def listen_for_boards() -> None:
     global known_devices, recv_sock
 
     import json
+    import logging
     import socket
     import time
-    import logging
 
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger(__name__)

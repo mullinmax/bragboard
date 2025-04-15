@@ -4,6 +4,7 @@ from datetime import datetime
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from fastapi import FastAPI
+
 from jobs.listen_for_boards import listen_for_boards
 
 # Scheduler instance

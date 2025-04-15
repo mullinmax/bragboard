@@ -1,5 +1,6 @@
-import sqlite3
 import logging
+import sqlite3
+
 import databases
 import uvicorn
 from fastapi import FastAPI
