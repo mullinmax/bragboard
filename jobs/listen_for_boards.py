@@ -46,12 +46,14 @@ async def listen_for_boards() -> None:
 
             try:
                 msg = json.loads(data.decode("utf-8"))
+                logging.debug(f"Received message: {msg}")
             except json.JSONDecodeError:
                 # If it's not valid JSON, ignore it
                 continue
 
             if "name" in msg and "version" in msg:
                 ip_str = addr[0]
+                reported_ip = msg.get("ip", ip_str)
                 version = msg["version"]
                 name = msg["name"]
                 current_time = time.time()
@@ -61,10 +63,11 @@ async def listen_for_boards() -> None:
                     "version": version,
                     "last_seen": current_time,
                     "name": name,
+                    "reported_ip": reported_ip
                 }
 
                 # Print the discovery
-                print(f"Board announcement from {name} at {ip_str} (version: {version})")
+                print(f"Board announcement from {name} at {ip_str} (version: {version}) reported_ip: {reported_ip}")
 
     except Exception as e:
         print(f"Error while listening for boards: {e}")
@@ -85,7 +88,7 @@ async def listen_for_boards() -> None:
     if known_devices:
         logging.info(f"Current known devices:{len(known_devices)}")
         for ip, info in known_devices.items():
-            logging.info(f"  {info['name']} at {ip} (version: {info['version']})")
+            logging.info(f"  {info['name']} at {ip} (version: {info['version']}) reported_ip: {info['reported_ip']}")
 
     # Update the database with the known devices
     for ip, info in known_devices.items():
