@@ -1,5 +1,6 @@
 services:
   api:
+    container_name: bragboard-api
     build:
       context: .
       dockerfile: Dockerfile
@@ -7,7 +8,7 @@ services:
       - "8000"       # Web UI / API
       - "37020:37020/udp" # Discovery
     environment:
-      - DATABASE_HOST=postgres
+      - DATABASE_HOST=bragboard-postgres
       - DATABASE_PORT=5432
       - DATABASE_NAME=bragboard
       - DATABASE_USER=bragboard_user
@@ -18,11 +19,9 @@ services:
       - "traefik.http.services.bragboard.loadbalancer.server.port=8000"
     extra_hosts:
       - "host.docker.internal:host-gateway" # allows access to LAN
-    networks:
-      - internal             # talks to Postgres
-      - traefik_default      # visible to the proxy
 
   postgres:
+    container_name: bragboard-postgres
     image: postgres:latest
     environment:
       - POSTGRES_DB=bragboard
@@ -32,14 +31,12 @@ services:
       - "5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    networks:
-      - internal             # **not** on traefik_default
+
 
 volumes:
   postgres_data:
 
 networks:
-  traefik_default:           # the proxy’s network
+  default:
     external: true
-    name: traefik_default
-  internal:                  # created by Compose, isolated
+    name: "traefik_default"
