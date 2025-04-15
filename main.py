@@ -30,7 +30,7 @@ async def not_found_handler(request, exc):
 
 
 @app.get("/api/machines/list")
-async def machiens_list():
+async def machines_list():
     """
     Get the list of machines.
     """
