@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
-from db.con import Machine
+from db.con import Machine, AsyncDatabase
 from jobs.scheduler import app_lifespan
 
 app = FastAPI(lifespan=app_lifespan)
@@ -41,6 +41,34 @@ async def machines_list():
         machine["last_seen"] = machine["last_seen"].isoformat() if machine["last_seen"] else None
 
     return JSONResponse(content={"machines": machines})
+
+@app.delete("/api/db/delete")
+async def delete_all():
+    """
+    Erase all tables from the db
+    """
+    con = await AsyncDatabase.get_instance()
+    # dropdb bragboard
+    await con.execute(
+        """
+            DO $$
+            DECLARE
+                r RECORD;
+            BEGIN
+                FOR r IN (
+                    SELECT tablename
+                    FROM pg_tables
+                    WHERE schemaname = 'public'
+                ) LOOP
+                    EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(r.tablename) || ' CASCADE';
+                END LOOP;
+            END $$;
+        """
+    )
+
+
+
+
 
 
 if __name__ == "__main__":
