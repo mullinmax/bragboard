@@ -3,3 +3,4 @@ uvicorn
 pre-commit
 databases
 aiosqlite
+APScheduler < 4

@@ -72,3 +72,11 @@ async def get_random_data():
     # Simulate some random data
     data = {"name": "John Doe", "age": 30, "city": "New York"}
     return data
+
+
+# routes
+# active games
+# high scores (by all time, by week, by month, by day, by hour)
+# game list
+# game details
+# game image

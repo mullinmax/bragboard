@@ -1,0 +1,85 @@
+def listen_for_boards() -> None:
+    """
+    Listen for UDP broadcasts from boards on the network.
+    This function is designed to be called regularly from a FastAPI scheduler.
+    """
+    global known_devices, recv_sock
+
+    import json
+    import socket
+    import time
+
+    # The UDP port used for discovery
+    DISCOVERY_PORT = 37020
+    DEVICE_TIMEOUT = 60  # Consider devices older than this as offline
+
+    # Initialize the socket if not already done
+    if recv_sock is None:
+        try:
+            recv_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            recv_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            recv_sock.bind(("0.0.0.0", DISCOVERY_PORT))
+            recv_sock.setblocking(False)
+            print(f"Listening for board announcements on UDP port {DISCOVERY_PORT}")
+        except Exception as e:
+            print(f"Failed to set up socket: {e}")
+            return
+
+    # Process any incoming announcements
+    try:
+        while True:
+            try:
+                data, addr = recv_sock.recvfrom(1024)
+            except BlockingIOError:
+                # No more data available
+                break
+
+            try:
+                msg = json.loads(data.decode("utf-8"))
+            except json.JSONDecodeError:
+                # If it's not valid JSON, ignore it
+                continue
+
+            if "name" in msg and "version" in msg:
+                ip_str = addr[0]
+                version = msg["version"]
+                name = msg["name"]
+                current_time = time.time()
+
+                # Update our known devices dictionary
+                known_devices[ip_str] = {
+                    "version": version,
+                    "last_seen": current_time,
+                    "name": name,
+                }
+
+                # Print the discovery
+                print(f"Board announcement from {name} at {ip_str} (version: {version})")
+
+    except Exception as e:
+        print(f"Error while listening for boards: {e}")
+
+    # Prune devices that haven't been seen in a while
+    current_time = time.time()
+    to_remove = []
+
+    for ip, info in known_devices.items():
+        if current_time - info["last_seen"] > DEVICE_TIMEOUT:
+            to_remove.append(ip)
+            print(f"Board timeout: {info['name']} at {ip} is no longer visible")
+
+    for ip in to_remove:
+        del known_devices[ip]
+
+    # Print current known devices
+    if known_devices:
+        print(f"Current visible boards: {len(known_devices)}")
+        for ip, info in known_devices.items():
+            print(
+                f"  - {info['name']} at {ip} (version: {info['version']}, last seen: {int(current_time - info['last_seen'])}s ago)"  # noqa: E501
+            )
+
+
+# Global variables to maintain state between function calls
+known_devices = {}
+recv_sock = None

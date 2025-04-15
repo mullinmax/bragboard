@@ -5,3 +5,22 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8000:8000"
+    environment:
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_NAME=bragboard
+      - DATABASE_USER=bragboard_user
+      - DATABASE_PASSWORD=securepassword
+  postgres:
+    image: postgres:latest
+    environment:
+      - POSTGRES_DB=bragboard
+      - POSTGRES_USER=bragboard_user
+      - POSTGRES_PASSWORD=securepassword
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
