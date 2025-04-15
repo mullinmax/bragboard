@@ -5,6 +5,7 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8000:8000"
+      - "37020:37020/udp"
     environment:
       - DATABASE_HOST=postgres
       - DATABASE_PORT=5432
