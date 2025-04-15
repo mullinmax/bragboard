@@ -16,6 +16,8 @@ services:
       - "traefik.http.routers.bragboard.rule=Host(`bragboard.doze.dev`)"
       - "traefik.http.routers.bragboard.service=bragboard"
       - "traefik.http.services.bragboard.loadbalancer.server.port=8000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway" # allows access to LAN
     networks:
       - internal             # talks to Postgres
       - traefik_default      # visible to the proxy
