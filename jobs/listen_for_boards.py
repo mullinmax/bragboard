@@ -53,14 +53,14 @@ async def listen_for_boards() -> None:
 
             # Check for required fields
             if "name" in msg and "version" in msg and "ip" in msg:
-                name = msg["name"]
+                title = msg["name"]
                 version = msg["version"]
                 ip = msg["ip"]  # Use IP from the message
 
-                logger.info(f"Board announcement from {name} at {ip} (version: {version})")
+                logger.info(f"Board announcement from {title} at {ip} (version: {version})")
 
                 # Update database
-                await Machine.upsert(id=ip, ip=ip, name=name, version=version, last_seen=datetime.now())
+                await Machine.upsert(id=ip, ip=ip, title=title, version=version, last_seen=datetime.now())
             else:
                 logger.debug("Received incomplete announcement, missing required fields")
 

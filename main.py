@@ -37,12 +37,31 @@ async def machines_list():
     Get the list of machines.
     """
     machines = await Machine.all()
+    return JSONResponse(content=jsonable_encoder(machines))
 
-    # serialize the datetime in last_seen
-    for machine in machines:
-        machine["last_seen"] = machine["last_seen"].isoformat() if machine["last_seen"] else None
+@app.get("/api/machines/{machine_id}/highscores")
+async def machine_highscores(machine_id: str):
+    """
+    Get the highscores for a specific machine.
+    """
+    query = """
+        SELECT 
+            plays.initials,
+            plays.score,
+            games.date
+        FROM machines
+        JOIN games
+            ON games.machine_id = machines.id
+        JOIN plays 
+            ON plays.game_id = games.id
+        WHERE machines.id = $1
+        ORDER BY plays.score DESC
+    """
 
-    return JSONResponse(content={"machines": machines})
+    con = await AsyncDatabase.get_instance()
+    result = await con.fetchall(query, (machine_id))
+
+    return JSONResponse(content=jsonable_encoder(result))
 
 @app.delete("/api/db/delete")
 async def delete_all():

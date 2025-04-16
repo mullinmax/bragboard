@@ -208,7 +208,7 @@ class Machine(BaseModelDB):
     CREATE TABLE IF NOT EXISTS "machines" (
         id TEXT PRIMARY KEY,
         ip TEXT NOT NULL,
-        name TEXT NOT NULL,
+        title TEXT NOT NULL,
         version TEXT NOT NULL,
         last_seen TIMESTAMP NOT NULL
     )

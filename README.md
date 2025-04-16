@@ -62,12 +62,14 @@ erDiagram
 
 ### Bragboard dev TODO list
 
-- [ ] finish trench coat based dev pipeline
-- [ ] make vector report IP address
-- [ ] make vector self-assign a guid
-- [ ] grab high scores from each vector baord
-- [ ] make vector broadcast live game data
+- [x] make vector report IP address
+- [x] grab high scores from each vector baord
 - [ ] write web UI to display high scores
+    - [x] API routes to get high scores 
     - [ ] scroll through high scores within one game
     - [ ] "slide show" of games 
+- [ ] make vector broadcast live game data
+    - [ ] Collect live data in db
+    - [ ] stream live data to web UI
 - [ ] pull in backglass images
+- [ ] make vector self-assign a guid
