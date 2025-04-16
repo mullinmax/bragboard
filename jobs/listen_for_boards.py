@@ -60,7 +60,7 @@ async def listen_for_boards() -> None:
                 logger.info(f"Board announcement from {name} at {ip} (version: {version})")
 
                 # Update database
-                await Machine.upsert(ip=ip, name=name, version=version, last_seen=datetime.now())
+                await Machine.upsert(id=ip, ip=ip, name=name, version=version, last_seen=datetime.now())
             else:
                 logger.debug("Received incomplete announcement, missing required fields")
 

@@ -1,6 +1,6 @@
 import os
 from typing import Any, Dict, List, Optional, Set
-
+import logging
 import asyncpg
 
 
@@ -41,17 +41,20 @@ class AsyncDatabase:
     async def execute(self, query: str, params: tuple = ()) -> None:
         await self.initialize_pool()
         async with self.pool.acquire() as connection:
+            logging.debug(f"Executing query: {query} with params: {params}")
             await connection.execute(query, *params)
 
     async def fetchone(self, query: str, params: tuple = ()) -> Optional[Dict[str, Any]]:
         await self.initialize_pool()
         async with self.pool.acquire() as connection:
+            logging.debug(f"Fetching one row with query: {query} and params: {params}")
             row = await connection.fetchrow(query, *params)
             return dict(row) if row else None
 
     async def fetchall(self, query: str, params: tuple = ()) -> List[Dict[str, Any]]:
         await self.initialize_pool()
         async with self.pool.acquire() as connection:
+            logging.debug(f"Fetching all rows with query: {query} and params: {params}")
             rows = await connection.fetch(query, *params)
             return [dict(row) for row in rows]
 
@@ -89,11 +92,14 @@ class BaseModelDB:
 
         # Skip if already initialized
         if cls.table_name in AsyncDatabase._initialized_tables:
+            logging.debug(f"Table {cls.table_name} already initialized.")
             return
 
         # Create table if it doesn't exist
         if not await db.table_exists(cls.table_name):
+            logging.info(f"Creating table {cls.table_name}")
             if not cls.schema_definition:
+                logging.error(f"No schema definition provided for {cls.table_name}")
                 raise ValueError(f"No schema defined for {cls.__name__}")
             await db.execute(cls.schema_definition)
 
@@ -170,6 +176,19 @@ class BaseModelDB:
         """
         await (await cls.get_db()).execute(query, tuple(kwargs.values()))
 
+    @classmethod
+    async def new(cls, **kwargs):
+        """inserts a row into the table and returns the row"""
+        await cls.initialize()
+
+        # Safety check for column names
+        cls.validate_column_names(kwargs.keys())
+
+        columns = ", ".join(f'"{key}"' for key in kwargs)
+        param_indices = ", ".join([f"${i+1}" for i in range(len(kwargs))])
+        query = f'INSERT INTO "{cls.table_name}" ({columns}) VALUES ({param_indices}) RETURNING *'
+        return await (await cls.get_db()).fetchone(query, tuple(kwargs.values()))
+
 
 # Example usage - no need to specify connection params anymore
 class User(BaseModelDB):
@@ -187,7 +206,8 @@ class Machine(BaseModelDB):
     table_name = "machines"
     schema_definition = """
     CREATE TABLE IF NOT EXISTS "machines" (
-        ip TEXT PRIMARY KEY,
+        id TEXT PRIMARY KEY,
+        ip TEXT NOT NULL,
         name TEXT NOT NULL,
         version TEXT NOT NULL,
         last_seen TIMESTAMP NOT NULL
@@ -200,6 +220,19 @@ class Game(BaseModelDB):
     schema_definition = """
     CREATE TABLE IF NOT EXISTS "games" (
         id SERIAL PRIMARY KEY,
+        machine_id TEXT NOT NULL,
         date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )
+    """
+
+class Play(BaseModelDB):
+    table_name = "plays"
+    schema_definition = """
+    CREATE TABLE IF NOT EXISTS "plays" (
+        id SERIAL PRIMARY KEY,
+        game_id INTEGER NOT NULL,
+        score BIGINT NOT NULL,
+        initials TEXT,
+        duration_seconds INTEGER
     )
     """

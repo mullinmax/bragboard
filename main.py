@@ -2,7 +2,9 @@ import logging
 import uvicorn
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.encoders import jsonable_encoder
 from fastapi.staticfiles import StaticFiles
+import json
 
 from db.con import Machine, AsyncDatabase
 from jobs.scheduler import app_lifespan
@@ -66,9 +68,17 @@ async def delete_all():
         """
     )
 
+    # mark all tables as uninitialized
+    AsyncDatabase._initialized_tables = set()
 
-
-
+@app.post("/api/db/query")
+async def execute_query(query: str):
+    """
+    Execute a raw SQL query.
+    """
+    con = await AsyncDatabase.get_instance()
+    result = await con.fetchall(query)
+    return JSONResponse(content=jsonable_encoder(result))
 
 
 if __name__ == "__main__":

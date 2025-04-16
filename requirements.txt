@@ -3,3 +3,4 @@ uvicorn
 pre-commit
 APScheduler < 4
 asyncpg
+requests
