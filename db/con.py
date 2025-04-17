@@ -1,6 +1,7 @@
+import logging
 import os
 from typing import Any, Dict, List, Optional, Set
-import logging
+
 import asyncpg
 
 
@@ -224,6 +225,7 @@ class Game(BaseModelDB):
         date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
     )
     """
+
 
 class Play(BaseModelDB):
     table_name = "plays"

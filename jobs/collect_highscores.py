@@ -1,7 +1,10 @@
-import requests
+import logging
 from datetime import datetime
 
-from db.con import AsyncDatabase, Machine, Game, Play
+import requests
+
+from db.con import AsyncDatabase, Game, Machine, Play
+
 
 async def collect_highscores() -> None:
     """
@@ -9,7 +12,7 @@ async def collect_highscores() -> None:
     """
     await Play.initialize()
     await Game.initialize()
-    
+
     # Get all machines
     machines = await Machine.all()
 
@@ -63,44 +66,33 @@ async def collect_highscores() -> None:
         # request the highscores from the machine
         highscores = get_highscores(machine_ip)
 
-        query_template = '''
-            SELECT * 
+        query_template = """
+            SELECT *
             FROM plays
-            JOIN games 
+            JOIN games
                 ON plays.game_id = game_id
             WHERE games.date = $1
                 AND plays.score = $2
                 AND plays.initials = $3
                 AND games.machine_id = $4
-        '''
+        """
 
         con = await AsyncDatabase.get_instance()
 
         for highscore in highscores:
             highscore["date"] = datetime.strptime(highscore["date"], "%m/%d/%Y")
-            
+
             # check to see if a play with the same score / date already exists
-            params = (
-                highscore["date"],
-                highscore["score"], 
-                highscore["initials"],
-                machine_ip
-            )
+            params = (highscore["date"], highscore["score"], highscore["initials"], machine_ip)
             result = await con.fetchone(query_template, params)
-            
+
             if result is not None:
                 continue
 
             # Make a new game for the machine
-            new_game = await Game.new(
-                machine_id=machine_ip,
-                date=highscore["date"]
-            )
+            new_game = await Game.new(machine_id=machine_ip, date=highscore["date"])
 
             # Add the score
             await Play.new(
-                game_id=new_game["id"],
-                score=highscore["score"],
-                initials=highscore["initials"]
+                game_id=new_game["id"], score=highscore["score"], initials=highscore["initials"]
             )
-

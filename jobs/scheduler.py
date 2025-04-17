@@ -1,11 +1,13 @@
 import logging
 from contextlib import asynccontextmanager
 from datetime import datetime
+
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from fastapi import FastAPI
 
-from jobs.listen_for_boards import listen_for_boards
 from jobs.collect_highscores import collect_highscores
+from jobs.listen_for_boards import listen_for_boards
+
 # Scheduler instance
 scheduler = AsyncIOScheduler()
 

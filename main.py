@@ -1,12 +1,12 @@
 import logging
+
 import uvicorn
 from fastapi import FastAPI
-from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.encoders import jsonable_encoder
+from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
-import json
 
-from db.con import Machine, AsyncDatabase
+from db.con import AsyncDatabase, Machine
 from jobs.scheduler import app_lifespan
 
 app = FastAPI(lifespan=app_lifespan)
@@ -39,20 +39,21 @@ async def machines_list():
     machines = await Machine.all()
     return JSONResponse(content=jsonable_encoder(machines))
 
+
 @app.get("/api/machines/{machine_id}/highscores")
 async def machine_highscores(machine_id: str):
     """
     Get the highscores for a specific machine.
     """
     query = """
-        SELECT 
+        SELECT
             plays.initials,
             plays.score,
             games.date
         FROM machines
         JOIN games
             ON games.machine_id = machines.id
-        JOIN plays 
+        JOIN plays
             ON plays.game_id = games.id
         WHERE machines.id = $1
         ORDER BY plays.score DESC
@@ -62,6 +63,7 @@ async def machine_highscores(machine_id: str):
     result = await con.fetchall(query, (machine_id))
 
     return JSONResponse(content=jsonable_encoder(result))
+
 
 @app.delete("/api/db/delete")
 async def delete_all():
@@ -89,6 +91,7 @@ async def delete_all():
 
     # mark all tables as uninitialized
     AsyncDatabase._initialized_tables = set()
+
 
 @app.post("/api/db/query")
 async def execute_query(query: str):

@@ -65,9 +65,9 @@ erDiagram
 - [x] make vector report IP address
 - [x] grab high scores from each vector baord
 - [ ] write web UI to display high scores
-    - [x] API routes to get high scores 
+    - [x] API routes to get high scores
     - [ ] scroll through high scores within one game
-    - [ ] "slide show" of games 
+    - [ ] "slide show" of games
 - [ ] make vector broadcast live game data
     - [ ] Collect live data in db
     - [ ] stream live data to web UI
