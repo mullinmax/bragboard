@@ -7,6 +7,7 @@ from fastapi import FastAPI
 
 from jobs.collect_highscores import collect_highscores
 from jobs.listen_for_boards import listen_for_boards
+from jobs.listen_for_game_final_score import listen_for_game_final_score
 from jobs.listen_for_game_state import listen_for_game_state
 
 # Scheduler instance
@@ -38,8 +39,17 @@ async def app_lifespan(app: FastAPI):
     scheduler.add_job(
         func=collect_highscores,
         trigger="interval",
-        seconds=60,
+        seconds=60 * 5,
         id="collect_highscores",
+        replace_existing=True,
+        next_run_time=datetime.now(),
+    )
+
+    scheduler.add_job(
+        func=listen_for_game_final_score,
+        trigger="interval",
+        seconds=60 * 5,
+        id="listen_for_game_final_score",
         replace_existing=True,
         next_run_time=datetime.now(),
     )

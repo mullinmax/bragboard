@@ -1,3 +1,5 @@
+# TODO don't check boards that have not been connected for a while
+
 import logging
 from datetime import datetime
 

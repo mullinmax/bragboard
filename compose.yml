@@ -20,6 +20,7 @@ services:
       - "8000"       # Web UI / API
       - "37020:37020/udp" # Discovery
       - "37021:37021/udp" # Game State
+      - "37022:37022/udp" # Final Scores
     environment:
       - DATABASE_HOST=bragboard-postgres
       - DATABASE_PORT=5432
