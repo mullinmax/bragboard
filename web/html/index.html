@@ -1,30 +1,48 @@
+/html/index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Pico.css Website</title>
+    <title>Arcade Leaderboard</title>
     <link rel="stylesheet" href="/css/pico.min.css">
+    <link rel="stylesheet" href="/css/main.css">
 </head>
 <body>
-    <header>
-        <h1>Welcome to My Pico.css Website</h1>
-    </header>
-    <main>
-        <section>
-            <h2>About</h2>
-            <p>This is a simple website styled with Pico.css, a lightweight CSS framework.</p>
-        </section>
-        <section>
-            <h2>Features</h2>
-            <ul>
-                <li>Minimalist design</li>
-                <li>Responsive layout</li>
-                <li>Easy to use</li>
-            </ul>
-        </section>
-    </main>
-    <footer>
-    </footer>
+    <div class="container">
+        <header class="leaderboard-header">
+            <h1>Arcade Leaderboard</h1>
+            <div class="clock" id="clock"></div>
+        </header>
+
+        <main>
+            <div id="leaderboard-container">
+                <div class="machine-info">
+                    <h2 id="machine-title">Loading machines...</h2>
+                </div>
+
+                <div class="scores-container">
+                    <table class="scores-table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Player</th>
+                                <th>Score</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="scores-body">
+                            <!-- Scores will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p id="status-message">Connecting to server...</p>
+        </footer>
+    </div>
+    <script src="/js/main.js"></script>
 </body>
 </html>
