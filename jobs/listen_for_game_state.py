@@ -43,6 +43,7 @@ async def listen_for_game_state() -> None:
             while True:
                 try:
                     data, addr = recv_sock.recvfrom(1024)
+                    # TODO check for malformed msgs
                 except BlockingIOError:
                     # No more data available
                     break
@@ -59,39 +60,56 @@ async def listen_for_game_state() -> None:
                 query = """
                     SELECT
                         games.id,
-                        game_states.state
-                    FROM machines
-                    INNER JOIN games
-                        ON games.machine_id = machines.id
+                        game_states.state,
+                        games.active
+                    FROM games
                     LEFT JOIN game_states
                         ON game_states.game_id = games.id
-                    WHERE id = $1
-                        AND games.active = true
+                    WHERE games.machine_id = $1
+                    ORDER by games.date DESC
                 """
                 params = (msg["game_ip"],)
                 result = await con.fetchone(query, params)
 
+                # If no game is found, create a new one
                 if result is None:
-                    new_game = await Game.new(machine_id=addr[0], date=datetime.now(), active=True)
-                    game_id = new_game["id"]
-                    prev_state = None
-                else:
-                    game_id = result["id"]
-                    prev_state = result["state"]
+                    logger.info(f"No game found for {msg['game_ip']}, creating a new one")
+                    await Game.new(
+                        machine_id=msg["game_ip"],
+                        date=datetime.now(),
+                        active=msg["game_status"]["GameActive"],
+                    )
+                    result = await con.fetchone(query, params)
 
-                # If the last status is the same as this one ignore it
-                if prev_state == msg["state"]:
+                # if current game is active and game in db is not, create a new game
+                if msg["game_status"]["GameActive"] and not result["active"]:
+                    logger.info(f"Game is active, creating a new game for {msg['game_ip']}")
+                    await Game.new(machine_id=msg["game_ip"], date=datetime.now(), active=True)
+                    result = await con.fetchone(query, params)
+
+                # if the current game is not active and game in db is, set it to inactive
+                if not msg["game_status"]["GameActive"] and result["active"]:
+                    await Game.set_active(game_id=result["id"], active=False)
+                    continue
+
+                # if the game status is the same as the last one, ignore it
+                if result["state"] == msg["game_status"]:
                     continue
 
                 # else add the new game state
                 await GameState.new(
-                    game_id=game_id,
-                    state=msg["state"],
-                    date=datetime.now(),
+                    game_id=result["id"],
+                    state=json.dumps(msg["game_status"]),
+                    timestamp=datetime.now(),
                 )
+                logger.info(f"Game state updated for {msg['game_ip']}: {msg['game_status']}")
 
         except Exception as e:
             logger.error(f"Error while listening for boards: {e}")
+            # log a stack trace
+            import traceback
+
+            logger.error(traceback.format_exc())
 
         # Sleep for a short duration to avoid busy waiting
         await asyncio.sleep(0.25)

@@ -230,6 +230,10 @@ class Game(BaseModelDB):
     )
     """
 
+    def set_active(cls, game_id: int, active: bool = True):
+        """Set the game as active"""
+        return cls.update(game_id=game_id, active=active)
+
 
 class Play(BaseModelDB):
     table_name = "plays"
@@ -249,7 +253,7 @@ class GameState(BaseModelDB):
     schema_definition = """
     CREATE TABLE IF NOT EXISTS "game_states" (
         id SERIAL PRIMARY KEY,
-        game_id TEXT NOT NULL,
+        game_id INTEGER NOT NULL,
         state JSONB NOT NULL,
         timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
     )
