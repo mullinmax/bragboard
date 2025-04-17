@@ -19,7 +19,7 @@
   }
 
   .container {
-    max-width: 1200px;
+    max-width: 98vw;
     margin: 0 auto;
     padding: 1rem;
     height: 95vh;
@@ -31,7 +31,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
     border-bottom: 2px solid var(--primary-color);
     padding-bottom: 0.5rem;
   }
@@ -48,27 +48,37 @@
     font-weight: bold;
   }
 
-  .machine-info {
-    background-color: var(--secondary-color);
-    padding: 1rem;
-    border-radius: 8px;
-    margin-bottom: 1rem;
-    transition: all var(--transition-speed) ease-in-out;
+  .quadrant-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 1rem;
+    height: calc(100vh - 150px);
+    transition: opacity var(--transition-speed) ease-in-out;
   }
 
-  .machine-info h2 {
-    margin: 0;
+  .quadrant {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .quadrant-header {
+    background-color: var(--secondary-color);
+    padding: 0.75rem;
     text-align: center;
-    font-size: 2.5rem;
+    font-size: 1.5rem;
+    font-weight: bold;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
   }
 
   .scores-container {
     flex-grow: 1;
     overflow: hidden;
     position: relative;
-    border-radius: 8px;
-    background-color: rgba(255, 255, 255, 0.1);
-    height: calc(100% - 150px);
   }
 
   .scores-table {
@@ -78,14 +88,14 @@
   }
 
   .scores-table thead {
-    background-color: var(--secondary-color);
+    background-color: rgba(15, 118, 110, 0.7);
     position: sticky;
     top: 0;
     z-index: 10;
   }
 
   .scores-table th, .scores-table td {
-    padding: 1rem;
+    padding: 0.75rem;
     text-align: left;
   }
 
@@ -157,7 +167,7 @@
   }
 
   footer {
-    margin-top: 2rem;
+    margin-top: 1rem;
     text-align: center;
     color: #9ca3af;
     font-size: 0.9rem;
@@ -168,16 +178,18 @@
   }
 
   /* Responsive adjustments */
-  @media (max-width: 768px) {
+  @media (max-width: 1200px) {
     .leaderboard-header h1 {
       font-size: 2rem;
     }
 
-    .machine-info h2 {
-      font-size: 1.8rem;
+    .quadrant-header {
+      font-size: 1.2rem;
+      padding: 0.5rem;
     }
 
     .scores-table th, .scores-table td {
       padding: 0.5rem;
+      font-size: 0.9rem;
     }
   }

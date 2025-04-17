@@ -1,26 +1,31 @@
 document.addEventListener('DOMContentLoaded', () => {
     // Configuration
     const config = {
-        refreshInterval: 60000,      // Refresh data every minute
-        scoresPerPage: 10,           // Number of scores visible at once
-        scrollDelay: 5000,           // Milliseconds before scrolling to next page
-        scrollDuration: 1000,        // Scroll animation duration
-        machineDisplayTime: 20000,   // Time to display each machine (ms)
-        fadeTransitionTime: 800,     // Fade animation duration (ms)
+        refreshInterval: 60000,       // Refresh data every minute
+        scoresPerPage: 8,             // Number of scores visible at once
+        scrollDelay: 5000,            // Milliseconds before scrolling to next page
+        machineDisplayTime: 20000,    // Time to display each machine (ms)
+        fadeTransitionTime: 800,      // Fade animation duration (ms)
     };
+
+    // Time windows for the quadrants
+    const timeWindows = ['day', 'week', 'month', 'all'];
 
     // State variables
     let machines = [];
     let currentMachineIndex = 0;
     let allScores = {};
-    let currentScores = [];
-    let isScrolling = false;
+    let isScrolling = {};
 
     // DOM Elements
     const machineTitle = document.getElementById('machine-title');
-    const scoresBody = document.getElementById('scores-body');
-    const statusMessage = document.getElementById('status-message');
     const clockElement = document.getElementById('clock');
+    const statusMessage = document.getElementById('status-message');
+
+    // Initialize scrolling state for each quadrant
+    timeWindows.forEach(window => {
+        isScrolling[window] = false;
+    });
 
     // Initialize the application
     initApp();
@@ -33,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             await loadMachines();
             if (machines.length > 0) {
-                await loadAndDisplayMachineScores(machines[0].id);
+                await loadAndDisplayAllTimeWindows(machines[0].id);
 
                 // Set up rotation between machines
                 if (machines.length > 1) {
@@ -73,41 +78,56 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    async function loadAndDisplayMachineScores(machineId) {
+    async function loadAndDisplayAllTimeWindows(machineId) {
         try {
-            statusMessage.textContent = 'Loading scores...';
-
-            // Fetch scores for the machine if we don't have them cached
-            if (!allScores[machineId]) {
-                const response = await fetch(`/api/machines/${machineId}/highscores`);
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error ${response.status}`);
-                }
-
-                allScores[machineId] = await response.json();
-            }
-
             // Get the current machine
             const currentMachine = machines.find(m => m.id === machineId);
 
             // Update machine title
             machineTitle.textContent = currentMachine.title;
 
-            // Display scores
-            displayScores(allScores[machineId]);
+            // Initialize scores cache for this machine if needed
+            if (!allScores[machineId]) {
+                allScores[machineId] = {};
+            }
+
+            // Load scores for each time window in parallel
+            const loadPromises = timeWindows.map(window => loadTimeWindowScores(machineId, window));
+            await Promise.all(loadPromises);
 
             statusMessage.textContent = `Showing scores for ${currentMachine.title}`;
-
         } catch (error) {
             showError(`Failed to load scores: ${error.message}`);
         }
     }
 
-    function displayScores(scores) {
+    async function loadTimeWindowScores(machineId, timeWindow) {
+        try {
+            // Fetch scores for the machine if we don't have them cached
+            if (!allScores[machineId][timeWindow]) {
+                const response = await fetch(`/api/machines/${machineId}/highscores?time_window=${timeWindow}`);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error ${response.status}`);
+                }
+
+                allScores[machineId][timeWindow] = await response.json();
+            }
+
+            // Display scores for this time window
+            displayScores(allScores[machineId][timeWindow], timeWindow);
+
+        } catch (error) {
+            showError(`Failed to load ${timeWindow} scores: ${error.message}`);
+        }
+    }
+
+    function displayScores(scores, timeWindow) {
+        // Get the appropriate scores body element
+        const scoresBody = document.getElementById(`${timeWindow}-scores-body`);
+
         // Clear existing scores
         scoresBody.innerHTML = '';
-        currentScores = scores;
 
         // If no scores
         if (!scores || scores.length === 0) {
@@ -122,20 +142,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Display the initial page of scores with an animation
         const initialScores = scores.slice(0, config.scoresPerPage);
-        appendScoresToTable(initialScores);
+        appendScoresToTable(initialScores, scoresBody);
 
         // If we have more scores than fit on a page, set up scrolling
         if (scores.length > config.scoresPerPage) {
             setTimeout(() => {
-                scrollScores();
+                scrollScores(scores, timeWindow);
             }, config.scrollDelay);
         }
     }
 
-    function appendScoresToTable(scores) {
+    function appendScoresToTable(scores, scoresBody) {
         scores.forEach((score, index) => {
-            const position = scores === currentScores.slice(0, config.scoresPerPage) ?
-                index + 1 : index + 1 + Math.floor(scoresBody.children.length / config.scoresPerPage) * config.scoresPerPage;
+            const position = index + 1 + Math.floor(scoresBody.children.length / config.scoresPerPage) * config.scoresPerPage;
 
             const row = document.createElement('tr');
             row.classList.add('score-row', 'fade-in');
@@ -170,11 +189,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function scrollScores() {
-        if (isScrolling || currentScores.length <= config.scoresPerPage) return;
+    function scrollScores(scores, timeWindow) {
+        const scoresBody = document.getElementById(`${timeWindow}-scores-body`);
 
-        isScrolling = true;
-        const totalScores = currentScores.length;
+        if (isScrolling[timeWindow] || scores.length <= config.scoresPerPage) return;
+
+        isScrolling[timeWindow] = true;
+        const totalScores = scores.length;
         const displayedRows = scoresBody.children.length;
         const totalPages = Math.ceil(totalScores / config.scoresPerPage);
         const currentPage = Math.floor(displayedRows / config.scoresPerPage);
@@ -189,8 +210,8 @@ document.addEventListener('DOMContentLoaded', () => {
             // Wait for animation to complete then reset
             setTimeout(() => {
                 scoresBody.innerHTML = '';
-                displayScores(currentScores);
-                isScrolling = false;
+                displayScores(scores, timeWindow);
+                isScrolling[timeWindow] = false;
             }, config.fadeTransitionTime);
             return;
         }
@@ -198,38 +219,31 @@ document.addEventListener('DOMContentLoaded', () => {
         // Calculate next page of scores to show
         const nextPageStart = (currentPage + 1) * config.scoresPerPage;
         const nextPageEnd = Math.min(nextPageStart + config.scoresPerPage, totalScores);
-        const nextPageScores = currentScores.slice(nextPageStart, nextPageEnd);
+        const nextPageScores = scores.slice(nextPageStart, nextPageEnd);
 
-        // Smoothly scroll to the next set
-        const currentHeight = scoresBody.scrollHeight;
-        appendScoresToTable(nextPageScores);
+        // Append the next set of scores
+        appendScoresToTable(nextPageScores, scoresBody);
 
         // Schedule the next scroll
         setTimeout(() => {
-            isScrolling = false;
-            scrollScores();
+            isScrolling[timeWindow] = false;
+            scrollScores(scores, timeWindow);
         }, config.scrollDelay);
     }
 
     async function rotateToNextMachine() {
         // Fade out current content
-        document.getElementById('leaderboard-container').classList.add('fade-out');
+        document.getElementById('leaderboard-container').style.opacity = '0';
 
         setTimeout(async () => {
             // Update machine index
             currentMachineIndex = (currentMachineIndex + 1) % machines.length;
 
-            // Load the next machine's scores
-            await loadAndDisplayMachineScores(machines[currentMachineIndex].id);
+            // Load the next machine's scores for all time windows
+            await loadAndDisplayAllTimeWindows(machines[currentMachineIndex].id);
 
             // Fade in new content
-            document.getElementById('leaderboard-container').classList.remove('fade-out');
-            document.getElementById('leaderboard-container').classList.add('fade-in');
-
-            // Remove the fade-in class after animation completes
-            setTimeout(() => {
-                document.getElementById('leaderboard-container').classList.remove('fade-in');
-            }, config.fadeTransitionTime);
+            document.getElementById('leaderboard-container').style.opacity = '1';
 
         }, config.fadeTransitionTime);
     }
@@ -246,7 +260,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (machines.length > 0) {
                 // Make sure current index is still valid
                 currentMachineIndex = Math.min(currentMachineIndex, machines.length - 1);
-                await loadAndDisplayMachineScores(machines[currentMachineIndex].id);
+                await loadAndDisplayAllTimeWindows(machines[currentMachineIndex].id);
             }
 
             statusMessage.textContent = 'Data refreshed';

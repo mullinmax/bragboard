@@ -41,10 +41,15 @@ async def machines_list():
 
 
 @app.get("/api/machines/{machine_id}/highscores")
-async def machine_highscores(machine_id: str):
+async def machine_highscores(machine_id: str, time_window: str = "all"):
     """
     Get the highscores for a specific machine.
+
+    Args:
+        machine_id: The ID of the machine
+        time_window: Time window for highscores (all, year, month, week, day)
     """
+    # Base query
     query = """
         SELECT
             plays.initials,
@@ -56,8 +61,20 @@ async def machine_highscores(machine_id: str):
         JOIN plays
             ON plays.game_id = games.id
         WHERE machines.id = $1
-        ORDER BY plays.score DESC
     """
+
+    # Add date filter based on time window
+    if time_window == "year":
+        query += " AND games.date >= CURRENT_DATE - INTERVAL '365 days'"
+    elif time_window == "month":
+        query += " AND games.date >= CURRENT_DATE - INTERVAL '30 days'"
+    elif time_window == "week":
+        query += " AND games.date >= CURRENT_DATE - INTERVAL '7 days'"
+    elif time_window == "day":
+        query += " AND games.date >= CURRENT_DATE"
+
+    # Add ordering
+    query += " ORDER BY plays.score DESC"
 
     con = await AsyncDatabase.get_instance()
     result = await con.fetchall(query, (machine_id,))
