@@ -4,6 +4,9 @@ from typing import Any, Dict, List, Optional, Set
 
 import asyncpg
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 
 def get_db_connection_params() -> Dict[str, Any]:
     """Get database connection parameters from environment variables with defaults"""
@@ -48,14 +51,14 @@ class AsyncDatabase:
     async def fetchone(self, query: str, params: tuple = ()) -> Optional[Dict[str, Any]]:
         await self.initialize_pool()
         async with self.pool.acquire() as connection:
-            logging.debug(f"Fetching one row with query: {query} and params: {params}")
+            logger.debug(f"Fetching one row with query: {query} and params: {params}")
             row = await connection.fetchrow(query, *params)
             return dict(row) if row else None
 
     async def fetchall(self, query: str, params: tuple = ()) -> List[Dict[str, Any]]:
         await self.initialize_pool()
         async with self.pool.acquire() as connection:
-            logging.debug(f"Fetching all rows with query: {query} and params: {params}")
+            logger.debug(f"Fetching all rows with query: {query} and params: {params}")
             rows = await connection.fetch(query, *params)
             return [dict(row) for row in rows]
 
@@ -93,14 +96,14 @@ class BaseModelDB:
 
         # Skip if already initialized
         if cls.table_name in AsyncDatabase._initialized_tables:
-            logging.debug(f"Table {cls.table_name} already initialized.")
+            logger.debug(f"Table {cls.table_name} already initialized.")
             return
 
         # Create table if it doesn't exist
         if not await db.table_exists(cls.table_name):
-            logging.info(f"Creating table {cls.table_name}")
+            logger.info(f"Creating table {cls.table_name}")
             if not cls.schema_definition:
-                logging.error(f"No schema definition provided for {cls.table_name}")
+                logger.error(f"No schema definition provided for {cls.table_name}")
                 raise ValueError(f"No schema defined for {cls.__name__}")
             await db.execute(cls.schema_definition)
 
@@ -222,7 +225,8 @@ class Game(BaseModelDB):
     CREATE TABLE IF NOT EXISTS "games" (
         id SERIAL PRIMARY KEY,
         machine_id TEXT NOT NULL,
-        date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+        date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        active BOOLEAN NOT NULL DEFAULT TRUE
     )
     """
 
@@ -236,5 +240,17 @@ class Play(BaseModelDB):
         score BIGINT NOT NULL,
         initials TEXT,
         duration_seconds INTEGER
+    )
+    """
+
+
+class GameState(BaseModelDB):
+    table_name = "game_states"
+    schema_definition = """
+    CREATE TABLE IF NOT EXISTS "game_states" (
+        id SERIAL PRIMARY KEY,
+        game_id TEXT NOT NULL,
+        state JSONB NOT NULL,
+        timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
     )
     """
