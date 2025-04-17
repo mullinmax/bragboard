@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paul's Pinball Palace</title>
+    <link rel="stylesheet" href="/css/pico.min.css">
+    <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+    <div class="container">
+        <header class="leaderboard-header">
+            <h1 id="machine-title">Loading machines...</h1>
+            <div class="clock" id="clock"></div>
+        </header>
+
+        <main>
+            <div id="leaderboard-container" class="quadrant-container">
+                <!-- Daily Scores -->
+                <div class="quadrant">
+                    <div class="quadrant-header">Daily High Scores</div>
+                    <div class="scores-container">
+                        <table class="scores-table">
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>Player</th>
+                                    <th>Score</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="day-scores-body" class="scores-body">
+                                <!-- Scores will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Weekly Scores -->
+                <div class="quadrant">
+                    <div class="quadrant-header">Weekly High Scores</div>
+                    <div class="scores-container">
+                        <table class="scores-table">
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>Player</th>
+                                    <th>Score</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="week-scores-body" class="scores-body">
+                                <!-- Scores will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Monthly Scores -->
+                <div class="quadrant">
+                    <div class="quadrant-header">Monthly High Scores</div>
+                    <div class="scores-container">
+                        <table class="scores-table">
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>Player</th>
+                                    <th>Score</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="month-scores-body" class="scores-body">
+                                <!-- Scores will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- All-time Scores -->
+                <div class="quadrant">
+                    <div class="quadrant-header">All-Time High Scores</div>
+                    <div class="scores-container">
+                        <table class="scores-table">
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>Player</th>
+                                    <th>Score</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="all-scores-body" class="scores-body">
+                                <!-- Scores will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p id="status-message">Connecting to server...</p>
+        </footer>
+    </div>
+    <script src="/js/main.js"></script>
+</body>
+</html>

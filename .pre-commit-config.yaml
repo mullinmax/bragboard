@@ -11,19 +11,17 @@ repos:
     rev: 23.9.1
     hooks:
       - id: black
+        args: ["--line-length", "100"]
 
   - repo: https://github.com/PyCQA/flake8
     rev: 6.1.0
     hooks:
       - id: flake8
-
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.5.1
-    hooks:
-      - id: mypy
+        args: ["--max-line-length", "100"]
 
   - repo: https://github.com/pycqa/isort
     rev: 6.0.1
     hooks:
       - id: isort
         name: isort (python)
+        args: ["--line-length", "100"]

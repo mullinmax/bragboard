@@ -1,0 +1,54 @@
+services:
+  postgres:
+    container_name: bragboard-postgres
+    image: postgres:latest
+    environment:
+      - POSTGRES_DB=bragboard
+      - POSTGRES_USER=bragboard_user
+      - POSTGRES_PASSWORD=securepassword
+    ports:
+      - "5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+  api:
+    container_name: bragboard-api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000"       # Web UI / API
+      - "37020:37020/udp" # Discovery
+    environment:
+      - DATABASE_HOST=bragboard-postgres
+      - DATABASE_PORT=5432
+      - DATABASE_NAME=bragboard
+      - DATABASE_USER=bragboard_user
+      - DATABASE_PASSWORD=securepassword
+    labels:
+      - "traefik.http.routers.bragboard.rule=Host(`bragboard.doze.dev`)"
+      - "traefik.http.routers.bragboard.service=bragboard"
+      - "traefik.http.services.bragboard.loadbalancer.server.port=8000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway" # allows access to LAN
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --schedule "0 0 4 * * *" --cleanup
+    environment:
+      - TZ=UTC
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  default:
+    external: true
+    name: "traefik_default"
