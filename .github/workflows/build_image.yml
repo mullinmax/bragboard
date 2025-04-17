@@ -44,16 +44,16 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Build and push the backend Docker image
-      - name: Build and push Backend Docker image
+      # Build and push the Docker image
+      - name: Build and push Docker image
         run: |
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            TAG="backend-dev-${{ github.event.pull_request.number }}"
+            TAG="dev-${{ github.event.pull_request.number }}"
           elif [[ "${{ github.event_name }}" == "release" ]]; then
-            TAG="backend-latest"
+            TAG="latest"
           fi
           docker buildx build \
             --push \
-            --tag ghcr.io/${{ github.repository }}:$TAG-backend \
-            --tag ghcr.io/${{ github.repository }}:${{ env.VERSION }}-backend \
+            --tag ghcr.io/${{ github.repository }}:$TAG \
+            --tag ghcr.io/${{ github.repository }}:${{ env.VERSION }} \
             .
