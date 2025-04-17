@@ -33,8 +33,6 @@ async def listen_for_boards() -> None:
         except Exception as e:
             logger.error(f"Failed to set up socket: {e}")
             return
-    else:
-        logger.debug("Using existing socket for board announcements")
 
     # Process incoming announcements
     try:

@@ -69,7 +69,7 @@ async def collect_highscores() -> None:
         query_template = """
             SELECT *
             FROM plays
-            JOIN games
+            INNER JOIN games
                 ON plays.game_id = game_id
             WHERE games.date = $1
                 AND plays.score = $2
@@ -90,7 +90,7 @@ async def collect_highscores() -> None:
                 continue
 
             # Make a new game for the machine
-            new_game = await Game.new(machine_id=machine_ip, date=highscore["date"])
+            new_game = await Game.new(machine_id=machine_ip, date=highscore["date"], active=False)
 
             # Add the score
             await Play.new(
