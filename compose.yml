@@ -19,6 +19,7 @@ services:
     ports:
       - "8000"       # Web UI / API
       - "37020:37020/udp" # Discovery
+      - "37021:37021/udp" # Game State
     environment:
       - DATABASE_HOST=bragboard-postgres
       - DATABASE_PORT=5432
@@ -35,15 +36,15 @@ services:
       - postgres
     restart: unless-stopped
 
-  watchtower:
-    image: containrrr/watchtower
-    container_name: watchtower
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    command: --schedule "0 0 4 * * *" --cleanup
-    environment:
-      - TZ=UTC
-    restart: unless-stopped
+  # watchtower:
+  #   image: containrrr/watchtower
+  #   container_name: watchtower
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #   command: --schedule "0 0 4 * * *" --cleanup
+  #   environment:
+  #     - TZ=UTC
+  #   restart: unless-stopped
 
 volumes:
   postgres_data:

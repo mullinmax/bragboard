@@ -7,6 +7,7 @@ from fastapi import FastAPI
 
 from jobs.collect_highscores import collect_highscores
 from jobs.listen_for_boards import listen_for_boards
+from jobs.listen_for_game_state import listen_for_game_state
 
 # Scheduler instance
 scheduler = AsyncIOScheduler()
@@ -15,6 +16,7 @@ scheduler = AsyncIOScheduler()
 @asynccontextmanager
 async def app_lifespan(app: FastAPI):
     logging.info("Starting Scheduled Jobs")
+
     scheduler.add_job(
         func=listen_for_boards,
         trigger="interval",
@@ -23,6 +25,16 @@ async def app_lifespan(app: FastAPI):
         replace_existing=True,
         next_run_time=datetime.now(),
     )
+
+    scheduler.add_job(
+        func=listen_for_game_state,
+        trigger="interval",
+        seconds=60 * 5,
+        id="listen_for_game_state",
+        replace_existing=True,
+        next_run_time=datetime.now(),
+    )
+
     scheduler.add_job(
         func=collect_highscores,
         trigger="interval",
@@ -31,6 +43,7 @@ async def app_lifespan(app: FastAPI):
         replace_existing=True,
         next_run_time=datetime.now(),
     )
+
     scheduler.start()
 
     yield
