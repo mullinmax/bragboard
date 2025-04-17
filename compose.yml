@@ -10,6 +10,7 @@ services:
       - "5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
   api:
     container_name: bragboard-api
     build:
@@ -32,6 +33,17 @@ services:
       - "host.docker.internal:host-gateway" # allows access to LAN
     depends_on:
       - postgres
+    restart: unless-stopped
+
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --schedule "0 0 4 * * *" --cleanup
+    environment:
+      - TZ=UTC
+    restart: unless-stopped
 
 volumes:
   postgres_data:
