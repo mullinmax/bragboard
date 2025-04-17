@@ -60,7 +60,7 @@ async def machine_highscores(machine_id: str):
     """
 
     con = await AsyncDatabase.get_instance()
-    result = await con.fetchall(query, (machine_id))
+    result = await con.fetchall(query, (machine_id,))
 
     return JSONResponse(content=jsonable_encoder(result))
 
