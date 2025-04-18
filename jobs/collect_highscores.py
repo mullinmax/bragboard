@@ -5,7 +5,7 @@ from datetime import datetime
 
 import requests
 
-from db.con import AsyncDatabase, Game, Machine, Play
+from db.conn import AsyncDatabase, Game, Machine, Play
 
 
 async def collect_highscores() -> None:

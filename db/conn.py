@@ -230,9 +230,10 @@ class Game(BaseModelDB):
     )
     """
 
-    def set_active(cls, game_id: int, active: bool = True):
+    @classmethod
+    async def set_active(cls, game_id: int, active: bool = True):
         """Set the game as active"""
-        return cls.update(game_id=game_id, active=active)
+        return await cls.upsert(id=game_id, active=active)
 
 
 class Play(BaseModelDB):

@@ -3,7 +3,7 @@ import logging
 import socket
 from datetime import datetime
 
-from db.con import Machine
+from db.conn import Machine
 
 # Global socket variable that persists between function calls
 recv_sock = None

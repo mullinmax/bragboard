@@ -6,8 +6,11 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
-from db.con import AsyncDatabase, Machine
+from db.conn import AsyncDatabase, Machine
 from jobs.scheduler import app_lifespan
+
+import time
+time.sleep(10)
 
 app = FastAPI(lifespan=app_lifespan)
 
