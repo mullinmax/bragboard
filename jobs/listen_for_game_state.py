@@ -4,7 +4,7 @@ import logging
 import socket
 from datetime import datetime
 
-from db.con import AsyncDatabase, Game, GameState
+from db.conn import AsyncDatabase, Game, GameState
 
 # Global socket variable that persists between function calls
 recv_sock = None

@@ -3,7 +3,7 @@ import json
 import logging
 import socket
 
-from db.con import AsyncDatabase, Play
+from db.conn import AsyncDatabase, Play
 
 # Global socket variable that persists between function calls
 recv_sock = None
