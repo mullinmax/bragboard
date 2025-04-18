@@ -44,6 +44,7 @@ async def listen_for_game_final_score() -> None:
 
                 try:
                     msg = json.loads(data.decode("utf-8"))
+                    logger.info(f"Received message: {msg}")
                     # example:
                     # [0, ("ABC", 42340), ("DEF", 1230), ("", 0), ("", 0)],
                 except json.JSONDecodeError as e:
@@ -74,7 +75,7 @@ async def listen_for_game_final_score() -> None:
                     continue
 
                 # for each non zero score in the message, add a play to the game
-                for player in msg["players"][1:]:  # Skip the first element which is the game number
+                for player in msg["game"][1:]:  # Skip the first element which is the game number
                     # if the score is 0, skip it
                     if player[1] == 0:
                         continue
