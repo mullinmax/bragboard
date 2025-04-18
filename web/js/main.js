@@ -4,8 +4,9 @@ document.addEventListener('DOMContentLoaded', () => {
         refreshInterval: 60000,       // Refresh data every minute
         scoresPerPage: 8,             // Number of scores visible at once
         scrollDelay: 5000,            // Milliseconds before scrolling to next page
-        machineDisplayTime: 20000,    // Time to display each machine (ms)
+        machineDisplayTime: 10000,    // Time to display each machine (ms) - changed from 20000
         fadeTransitionTime: 800,      // Fade animation duration (ms)
+        scrollSpeed: 40,              // Pixels per second for smooth scrolling
     };
 
     // Time windows for the quadrants
@@ -190,45 +191,48 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function scrollScores(scores, timeWindow) {
-        const scoresBody = document.getElementById(`${timeWindow}-scores-body`);
+        const scoresContainer = document.querySelector(`#${timeWindow}-scores-body`).closest('.scores-container');
 
         if (isScrolling[timeWindow] || scores.length <= config.scoresPerPage) return;
 
         isScrolling[timeWindow] = true;
-        const totalScores = scores.length;
-        const displayedRows = scoresBody.children.length;
-        const totalPages = Math.ceil(totalScores / config.scoresPerPage);
-        const currentPage = Math.floor(displayedRows / config.scoresPerPage);
+        const table = scoresContainer.querySelector('table');
+        const totalHeight = table.scrollHeight - scoresContainer.clientHeight;
 
-        // If we're at the last page, reset to the first page
-        if (currentPage >= totalPages - 1) {
-            // Remove all rows with animation
-            Array.from(scoresBody.children).forEach(row => {
-                row.classList.add('fade-out');
-            });
-
-            // Wait for animation to complete then reset
-            setTimeout(() => {
-                scoresBody.innerHTML = '';
-                displayScores(scores, timeWindow);
-                isScrolling[timeWindow] = false;
-            }, config.fadeTransitionTime);
+        if (totalHeight <= 0) {
+            isScrolling[timeWindow] = false;
             return;
         }
 
-        // Calculate next page of scores to show
-        const nextPageStart = (currentPage + 1) * config.scoresPerPage;
-        const nextPageEnd = Math.min(nextPageStart + config.scoresPerPage, totalScores);
-        const nextPageScores = scores.slice(nextPageStart, nextPageEnd);
+        // If already at bottom, reset to top with animation
+        if (scoresContainer.scrollTop >= totalHeight - 5) {
+            // Fade out
+            table.classList.add('fade-out');
 
-        // Append the next set of scores
-        appendScoresToTable(nextPageScores, scoresBody);
+            // Wait for animation to complete then reset
+            setTimeout(() => {
+                scoresContainer.scrollTop = 0;
+                table.classList.remove('fade-out');
+                table.classList.add('fade-in');
 
-        // Schedule the next scroll
+                setTimeout(() => {
+                    table.classList.remove('fade-in');
+                    isScrolling[timeWindow] = false;
+                }, config.fadeTransitionTime);
+            }, config.fadeTransitionTime);
+
+            return;
+        }
+
+        // Smooth scroll down
+        const scrollAmount = Math.min(30, totalHeight - scoresContainer.scrollTop);
+        scoresContainer.scrollTop += scrollAmount;
+
+        // Continue scrolling
         setTimeout(() => {
             isScrolling[timeWindow] = false;
             scrollScores(scores, timeWindow);
-        }, config.scrollDelay);
+        }, 1000); // Scroll a bit every second for smooth effect
     }
 
     async function rotateToNextMachine() {

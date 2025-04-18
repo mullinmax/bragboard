@@ -95,7 +95,7 @@
   }
 
   .scores-table th, .scores-table td {
-    padding: 0.75rem;
+    padding: 0.4rem 0.75rem;  /* Reduced vertical padding */
     text-align: left;
   }
 
@@ -189,7 +189,7 @@
     }
 
     .scores-table th, .scores-table td {
-      padding: 0.5rem;
+      padding: 0.3rem;  /* Further reduce padding on smaller screens */
       font-size: 0.9rem;
     }
   }
