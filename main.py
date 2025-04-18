@@ -1,4 +1,5 @@
 import logging
+import time
 
 import uvicorn
 from fastapi import FastAPI
@@ -9,8 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from db.conn import AsyncDatabase, Machine
 from jobs.scheduler import app_lifespan
 
-import time
-time.sleep(10)
+time.sleep(5)
 
 app = FastAPI(lifespan=app_lifespan)
 
