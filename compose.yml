@@ -17,7 +17,7 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8000"       # Web UI / API
+      - "80:8000"       # Web UI / API
       - "37020:37020/udp" # Discovery
       - "37021:37021/udp" # Game State
       - "37022:37022/udp" # Final Scores
@@ -27,10 +27,6 @@ services:
       - DATABASE_NAME=bragboard
       - DATABASE_USER=bragboard_user
       - DATABASE_PASSWORD=securepassword
-    labels:
-      - "traefik.http.routers.bragboard.rule=Host(`bragboard.doze.dev`)"
-      - "traefik.http.routers.bragboard.service=bragboard"
-      - "traefik.http.services.bragboard.loadbalancer.server.port=8000"
     extra_hosts:
       - "host.docker.internal:host-gateway" # allows access to LAN
     depends_on:
@@ -50,7 +46,7 @@ services:
 volumes:
   postgres_data:
 
-networks:
-  default:
-    external: true
-    name: "traefik_default"
+#networks:
+#  default:
+#    external: true
+#    name: "traefik_default"
