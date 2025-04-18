@@ -247,6 +247,12 @@ class Game(BaseModelDB):
     @classmethod
     async def set_active(cls, id: int, active: bool = True):
         """Set the game as active"""
+        if not isinstance(active, bool):
+            try:
+                active = bool(int(active))
+            except ValueError:
+                raise ValueError("active must be a boolean or convertible to a boolean")
+
         return await cls.update(id=id, active=active)
 
 
