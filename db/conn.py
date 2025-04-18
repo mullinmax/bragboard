@@ -173,7 +173,7 @@ class BaseModelDB:
         if not kwargs:
             raise ValueError("At least one condition is required")
 
-        set_clause = ", ".join([f'"{key}" = ${i+1}' for i, key in enumerate(kwargs)])
+        set_clause = ", ".join([f'"{key}" = ${i+2}' for i, key in enumerate(kwargs)])
         query = f'UPDATE "{cls.table_name}" SET {set_clause} WHERE id = $1'
         await (await cls.get_db()).execute(query, (id,) + tuple(kwargs.values()))
 
