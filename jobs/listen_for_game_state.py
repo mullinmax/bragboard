@@ -90,7 +90,7 @@ async def listen_for_game_state() -> None:
                 # if the current game is not active and game in db is, set it to inactive
                 if not msg["game_status"]["GameActive"] and result["active"]:
                     logger.info(f"Ending game for {msg['game_ip']}")
-                    await Game.set_active(game_id=result["id"], active=False)
+                    await Game.set_active(id=result["id"], active=False)
                     continue
 
                 if not result["active"] and not msg["game_status"]["GameActive"]:

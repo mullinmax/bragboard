@@ -164,6 +164,20 @@ class BaseModelDB:
         await (await cls.get_db()).execute(query, tuple(kwargs.values()))
 
     @classmethod
+    async def update(cls, id: int, **kwargs):
+        await cls.initialize()
+
+        # Safety check for column names
+        cls.validate_column_names(kwargs.keys())
+
+        if not kwargs:
+            raise ValueError("At least one condition is required")
+
+        set_clause = ", ".join([f'"{key}" = ${i+1}' for i, key in enumerate(kwargs)])
+        query = f'UPDATE "{cls.table_name}" SET {set_clause} WHERE id = $1'
+        await (await cls.get_db()).execute(query, (id,) + tuple(kwargs.values()))
+
+    @classmethod
     async def upsert(cls, **kwargs):
         await cls.initialize()
 
@@ -231,9 +245,9 @@ class Game(BaseModelDB):
     """
 
     @classmethod
-    async def set_active(cls, game_id: int, active: bool = True):
+    async def set_active(cls, id: int, active: bool = True):
         """Set the game as active"""
-        return await cls.upsert(id=game_id, active=active)
+        return await cls.update(id=id, active=active)
 
 
 class Play(BaseModelDB):
