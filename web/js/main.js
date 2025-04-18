@@ -193,9 +193,10 @@ document.addEventListener('DOMContentLoaded', () => {
     function scrollScores(scores, timeWindow) {
         const scoresContainer = document.querySelector(`#${timeWindow}-scores-body`).closest('.scores-container');
 
+        // Don't scroll if already scrolling or not enough scores to scroll
         if (isScrolling[timeWindow] || scores.length <= config.scoresPerPage) return;
 
-        isScrolling[timeWindow] = true;
+        // Check if content needs scrolling
         const table = scoresContainer.querySelector('table');
         const totalHeight = table.scrollHeight - scoresContainer.clientHeight;
 
@@ -204,35 +205,41 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // If already at bottom, reset to top with animation
-        if (scoresContainer.scrollTop >= totalHeight - 5) {
-            // Fade out
-            table.classList.add('fade-out');
+        isScrolling[timeWindow] = true;
 
-            // Wait for animation to complete then reset
-            setTimeout(() => {
+        // Calculate how far to scroll per step (based on config.scrollSpeed)
+        const pixelsPerStep = config.scrollSpeed / 10;
+
+        function smoothScroll() {
+            // If reached the bottom, jump back to top
+            if (scoresContainer.scrollTop >= totalHeight - 5) {
                 scoresContainer.scrollTop = 0;
-                table.classList.remove('fade-out');
-                table.classList.add('fade-in');
+            } else {
+                // Scroll by a small amount for smoothness
+                scoresContainer.scrollTop += pixelsPerStep;
+            }
 
-                setTimeout(() => {
-                    table.classList.remove('fade-in');
-                    isScrolling[timeWindow] = false;
-                }, config.fadeTransitionTime);
-            }, config.fadeTransitionTime);
-
-            return;
+            // Continue scrolling if we're still in scrolling state
+            if (isScrolling[timeWindow]) {
+                requestAnimationFrame(smoothScroll);
+            }
         }
 
-        // Smooth scroll down
-        const scrollAmount = Math.min(30, totalHeight - scoresContainer.scrollTop);
-        scoresContainer.scrollTop += scrollAmount;
+        // Start the continuous scrolling
+        smoothScroll();
 
-        // Continue scrolling
+        // Add a pause after scrolling through the entire content
         setTimeout(() => {
+            // Stop scrolling
             isScrolling[timeWindow] = false;
-            scrollScores(scores, timeWindow);
-        }, 1000); // Scroll a bit every second for smooth effect
+
+            // Wait for the configured delay, then restart
+            setTimeout(() => {
+                if (scores.length > config.scoresPerPage) {
+                    scrollScores(scores, timeWindow);
+                }
+            }, config.scrollDelay);
+        }, (totalHeight / pixelsPerStep) * 16 + 500); // Approximate time to scroll through content
     }
 
     async function rotateToNextMachine() {
